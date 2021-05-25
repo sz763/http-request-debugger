@@ -1,7 +1,6 @@
 package com.example.demo;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,10 +34,10 @@ public class SimpleController {
     private void appendHeaders(HttpServletRequest request, StringBuilder builder) {
         Enumeration<String> headerNames = request.getHeaderNames();
         builder.append("===========headers===============\n");
-        headerNames.asIterator()
-                .forEachRemaining(headerName ->
-                        builder.append(headerName).append('=').append(request.getHeader(headerName)).append('\n')
-                );
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            builder.append(headerName).append('=').append(request.getHeader(headerName)).append('\n');
+        }
         builder.append("===========headers============\n");
     }
 
