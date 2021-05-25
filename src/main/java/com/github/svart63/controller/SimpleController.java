@@ -75,7 +75,10 @@ public class SimpleController {
         builder.append("===========multi parts============\n");
         try {
             request.getParts().forEach(part -> builder
-                    .append(part.getName()).append(',').append(part.getContentType()).append('\n'));
+                    .append("name: ").append(part.getName()).append(',')
+                    .append("size: ").append(part.getSize()).append(',')
+                    .append("type: ").append(part.getContentType())
+                    .append('\n'));
         } catch (ServletException e) {
             builder.append("failed getting parts: ").append(e.getMessage()).append('\n');
         }
