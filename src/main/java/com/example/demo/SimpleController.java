@@ -19,6 +19,7 @@ public class SimpleController {
     //Http method didn't specified to receive all requests
     public ResponseEntity<String> handleRequest(HttpServletRequest request) throws IOException {
         StringBuilder builder = new StringBuilder();
+        builder.append("Requested uri: ").append(request.getRequestURI()).append('\n');
         appendHeaders(request, builder);
         appendMultiParts(request, builder);
         appendParameters(request, builder);
@@ -27,8 +28,10 @@ public class SimpleController {
 
     private void appendParameters(HttpServletRequest request, StringBuilder builder) {
         Map<String, String[]> map = request.getParameterMap();
+        builder.append("===========parameters===============\n");
         map.entrySet().stream().map(e -> e.getKey() + '=' + Arrays.toString(e.getValue()))
                 .forEach(e -> builder.append(e).append('\n'));
+        builder.append("===========parameters===============\n");
     }
 
     private void appendHeaders(HttpServletRequest request, StringBuilder builder) {
