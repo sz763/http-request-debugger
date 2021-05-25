@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Latest messages viewer</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    <script type="application/javascript" src="js/vue.js"></script>
+    <script type="module" src="app/app.js"></script>
+</head>
+<body>
+<div id="app" class="container">
+    <div v-for="msg in messages" class="mb-3">
+        <label class="form-label">{{msg.time}}</label>
+        <textarea class="form-control" style="font-size: 10pt" rows="20">{{msg.body}}</textarea>
+        <hr/>
+    </div>
+</div>
+</body>
+</html>
