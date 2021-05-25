@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -43,14 +45,18 @@ public class SimpleController {
                 ServletInputStream in = request.getInputStream();
                 BufferedReader buffered = new BufferedReader(new InputStreamReader(in))
         ) {
-            String line;
-            while ((line = buffered.readLine()) != null) {
-                builder.append(line).append('\n');
-            }
+            readToBuffer(builder, buffered);
         } catch (IOException e) {
             builder.append("failed reading body... ").append(e.getMessage());
         }
         builder.append("===========body===============\n");
+    }
+
+    private void readToBuffer(StringBuilder builder, BufferedReader buffered) throws IOException {
+        String line;
+        while ((line = buffered.readLine()) != null) {
+            builder.append(line).append('\n');
+        }
     }
 
     private void appendParameters(HttpServletRequest request, StringBuilder builder) {
@@ -75,13 +81,29 @@ public class SimpleController {
         builder.append("===========multi parts============\n");
         try {
             request.getParts().forEach(part -> builder
-                    .append("name: ").append(part.getName()).append(',')
-                    .append("size: ").append(part.getSize()).append(',')
-                    .append("type: ").append(part.getContentType())
+                    .append("name: ").append(part.getName()).append(',').append(' ')
+                    .append("size: ").append(part.getSize()).append(',').append(' ')
+                    .append("type: ").append(part.getContentType()).append(',').append(' ')
+                    .append("body: ").append(getSource(part))
                     .append('\n'));
         } catch (ServletException e) {
             builder.append("failed getting parts: ").append(e.getMessage()).append('\n');
         }
         builder.append("===========multi parts============\n");
     }
+
+    private String getSource(Part part) {
+        try (InputStream stream = part.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+            StringBuilder builder = new StringBuilder();
+            readToBuffer(builder, reader);
+            if (builder.length() > 50) {
+                return builder.substring(0, 50) + "...";
+            }
+            return builder.toString();
+        } catch (IOException e) {
+            return "Failed reading part content: " + part.getName();
+        }
+    }
+
 }
