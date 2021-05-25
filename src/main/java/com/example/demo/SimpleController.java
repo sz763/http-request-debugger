@@ -5,8 +5,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
@@ -23,7 +27,24 @@ public class SimpleController {
         appendHeaders(request, builder);
         appendMultiParts(request, builder);
         appendParameters(request, builder);
+        appendRequestBody(request, builder);
         return ResponseEntity.ok(builder.toString());
+    }
+
+    private void appendRequestBody(HttpServletRequest request, StringBuilder builder) {
+        builder.append("===========body===============\n");
+        try (
+                ServletInputStream in = request.getInputStream();
+                BufferedReader buffered = new BufferedReader(new InputStreamReader(in))
+        ) {
+            String line;
+            while ((line = buffered.readLine()) != null) {
+                builder.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            builder.append("failed reading body... ").append(e.getMessage());
+        }
+        builder.append("===========body===============\n");
     }
 
     private void appendParameters(HttpServletRequest request, StringBuilder builder) {
@@ -50,7 +71,7 @@ public class SimpleController {
             request.getParts().forEach(part -> builder
                     .append(part.getName()).append(',').append(part.getContentType()).append('\n'));
         } catch (ServletException e) {
-            builder.append("can't get file parts\n");
+            builder.append("failed getting parts: ").append(e.getMessage()).append('\n');
         }
         builder.append("===========multi parts============\n");
     }
