@@ -1,6 +1,9 @@
-package com.example.demo;
+package com.github.svart63.controller;
 
+import com.github.svart63.model.RequestMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +20,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 public class SimpleController {
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @RequestMapping
     //Http method didn't specified to receive all requests
@@ -27,7 +32,9 @@ public class SimpleController {
         appendMultiParts(request, builder);
         appendParameters(request, builder);
         appendRequestBody(request, builder);
-        return ResponseEntity.ok(builder.toString());
+        String response = builder.toString();
+        messagingTemplate.convertAndSend("/messages", new RequestMessage(response));
+        return ResponseEntity.ok(response);
     }
 
     private void appendRequestBody(HttpServletRequest request, StringBuilder builder) {
