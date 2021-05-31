@@ -78,6 +78,7 @@ internal class JsonResponseBuilderTest {
         val secondPart = multipart(null, toInputStream(se), "form-data", se.length.toLong())
         val parts = listOf(firstPart, secondPart)
         doReturn(parts).`when`(request).parts
+        doReturn("multipart").`when`(request).contentType
         val actual = responseBuilder.multiPartOf(request)
         val fistProjection = actual.component1()
         val secondProjection = actual.component2()
