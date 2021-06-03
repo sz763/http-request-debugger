@@ -54,7 +54,7 @@ class JsonResponseBuilder : ResponseBuilder<RequestProjection> {
 data class RequestProjection(
     val headers: Map<String, Collection<String>>,
     val body: String?,
-    val parameters: MutableMap<String, Array<String>>,
+    val parameters: Map<String, Array<String>>,
     val multipart: List<MultipartProjection>
 )
 

@@ -45,19 +45,7 @@ internal class JsonResponseBuilderTest {
     @Test
     internal fun testGetRequestBody() {
         val expected = "body"
-        val mockedStream = mock(ServletInputStream::class.java)
-        doReturn(mockedStream).`when`(request).inputStream
-        var filled = false
-        `when`(mockedStream.read(any(), anyInt(), anyInt())).thenAnswer { inv ->
-            val bytes = inv.arguments[0] as ByteArray
-            expected.toByteArray().copyInto(bytes)
-            if (filled) {
-                -1
-            } else {
-                filled = true
-                expected.length
-            }
-        }
+        mockBody(expected)
         val actual = responseBuilder.bodyOf(request)
         assertEquals(expected, actual)
     }
@@ -99,6 +87,31 @@ internal class JsonResponseBuilderTest {
         assertTrue(actual.endsWith(".."), "body must end with '..', actual: $actual")
     }
 
+    @Test
+    internal fun testBuildResponse() {
+        val headers = mapOf(Pair("key", TestEnumeration(listOf("val").iterator())))
+        val parameters = mapOf(Pair("key1", "val1"))
+        val body = "http-request-body"
+        val fe = "json"
+        val multipart = multipart("form-data-json", toInputStream(fe), "json", fe.length.toLong())
+        val parts = listOf(multipart)
+        val headersKey = TestEnumeration(headers.keys.iterator())
+
+        doReturn(headersKey).`when`(request).headerNames
+        `when`(request.getHeaders(anyString())).thenAnswer { a -> headers[a.arguments.first()] }
+        doReturn(parameters).`when`(request).parameterMap
+        doReturn(parts).`when`(request).parts
+        doReturn("multipart").`when`(request).contentType
+        mockBody(body)
+
+        val requestProjection = responseBuilder.buildResponse(request)
+        assertEquals(body, requestProjection.body)
+        assertEquals(mapOf(Pair("key", listOf("val"))), requestProjection.headers)
+        assertEquals(parameters, requestProjection.parameters)
+        val projection = MultipartProjection("form-data-json", "json", fe.length.toLong(), fe)
+        assertEquals(listOf(projection), requestProjection.multipart)
+    }
+
     private fun toInputStream(firstExpected: String) = ByteArrayInputStream(firstExpected.toByteArray())
 
     private fun multipart(type: String?, body: InputStream, name: String, size: Long): Part {
@@ -108,6 +121,22 @@ internal class JsonResponseBuilderTest {
         doReturn(name).`when`(part).name
         doReturn(type).`when`(part).contentType
         return part
+    }
+
+    private fun mockBody(expected: String) {
+        val mockedStream = mock(ServletInputStream::class.java)
+        doReturn(mockedStream).`when`(request).inputStream
+        var filled = false
+        `when`(mockedStream.read(any(), anyInt(), anyInt())).thenAnswer { inv ->
+            val bytes = inv.arguments[0] as ByteArray
+            expected.toByteArray().copyInto(bytes)
+            if (filled) {
+                -1
+            } else {
+                filled = true
+                expected.length
+            }
+        }
     }
 }
 
