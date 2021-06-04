@@ -3,26 +3,23 @@ package com.github.svart63.response
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.mock
 import org.mockito.junit.jupiter.MockitoExtension
-import java.io.ByteArrayInputStream
-import java.io.InputStream
-import java.util.Enumeration
-import javax.servlet.ServletInputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.Part
+import java.io.IOException
+import kotlin.jvm.Throws
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
 internal class JsonResponseBuilderTest : AbstractResponseBuilderTest() {
     private val responseBuilder = JsonResponseBuilder()
+
+    @Test
+    internal fun testTypeOfBuilder() {
+        assertEquals("json", responseBuilder.type())
+    }
 
     @Test
     internal fun testGetHeadersOfRequest() {
@@ -59,6 +56,29 @@ internal class JsonResponseBuilderTest : AbstractResponseBuilderTest() {
         val secondProjection = actual.component2()
         assertEquals(fe, fistProjection.body)
         assertEquals(se, secondProjection.body)
+    }
+
+    @Test
+    internal fun testGetMultipartDoesNotContainMultipartHeader() {
+        mockMultipartWithoutHeaderMultipart("application/json")
+        val actual: List<MultipartProjection> = responseBuilder.multiPartOf(request)
+        val expected: List<MultipartProjection> = emptyList()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    internal fun testGetMultipartContentTypeIsNull() {
+        mockMultipartWithoutHeaderMultipart(null)
+        val actual: List<MultipartProjection> = responseBuilder.multiPartOf(request)
+        val expected: List<MultipartProjection> = emptyList()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    internal fun testGetMultipartReadThrowsError() {
+        mockMultipartThrowsError()
+        responseBuilder.multiPartOf(request)
     }
 
     @Test

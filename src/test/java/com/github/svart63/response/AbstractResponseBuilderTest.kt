@@ -3,6 +3,7 @@ package com.github.svart63.response
 import org.mockito.Mock
 import org.mockito.Mockito
 import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.util.Enumeration
 import javax.servlet.ServletInputStream
@@ -32,6 +33,15 @@ abstract class AbstractResponseBuilderTest {
         val parts = listOf(firstPart, secondPart)
         Mockito.doReturn(parts).`when`(request).parts
         Mockito.doReturn("multipart").`when`(request).contentType
+    }
+
+    protected fun mockMultipartWithoutHeaderMultipart(contentType: String?) {
+        Mockito.doReturn(contentType).`when`(request).contentType
+    }
+
+    protected fun mockMultipartThrowsError() {
+        Mockito.doReturn("multipart").`when`(request).contentType
+        Mockito.doThrow(IOException("mocked")).`when`(request).parts
     }
 
     protected fun toInputStream(firstExpected: String) = ByteArrayInputStream(firstExpected.toByteArray())

@@ -28,6 +28,11 @@ internal class PlainTextResponseBuilderTest : AbstractResponseBuilderTest() {
     private val builder = StringBuilder()
 
     @Test
+    internal fun testTypeOfBuilder() {
+        assertEquals("plain", responseBuilder.type())
+    }
+
+    @Test
     internal fun testWrapperLine() {
         val actual = responseBuilder.wrapperLine("test")
         assertEquals("===========test============\n", actual)
