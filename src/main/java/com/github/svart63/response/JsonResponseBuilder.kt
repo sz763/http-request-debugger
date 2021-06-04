@@ -6,7 +6,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.Part
 
 @Component
-class JsonResponseBuilder : ResponseBuilder<RequestProjection> {
+class JsonResponseBuilder : AbstractResponseBuilder(), ResponseBuilder<RequestProjection> {
+
     override fun buildResponse(request: HttpServletRequest): RequestProjection {
         val headers = headersOf(request)
         val body: String = bodyOf(request)
@@ -38,15 +39,6 @@ class JsonResponseBuilder : ResponseBuilder<RequestProjection> {
     internal fun headersOf(request: HttpServletRequest) = request.headerNames.asSequence()
         .map { Pair(it, request.getHeaders(it).asSequence().toList()) }
         .toMap()
-
-    internal fun partBody(part: Part?): String? {
-        return part?.let { p -> readAndTrimTo50(p.inputStream) }
-    }
-
-    internal fun readAndTrimTo50(stream: InputStream): String {
-        return stream.bufferedReader()
-            .use { it.readText().replace(Regex("(.{50}?)([\\s\\S]+)"), "$1..") }
-    }
 
     override fun type(): String = "json"
 }

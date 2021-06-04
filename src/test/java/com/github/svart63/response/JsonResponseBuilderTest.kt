@@ -21,25 +21,17 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
-internal class JsonResponseBuilderTest {
+internal class JsonResponseBuilderTest : AbstractResponseBuilderTest() {
     private val responseBuilder = JsonResponseBuilder()
-
-    @Mock
-    private lateinit var request: HttpServletRequest
 
     @Test
     internal fun testGetHeadersOfRequest() {
-        val firstHeaderValues = arrayOf("header1")
-        val secondHeaderValues = arrayOf("header2.1", "header2.2")
-        val firstEntry = Pair("key1", TestEnumeration(firstHeaderValues.iterator()))
-        val secondEntry = Pair("key2", TestEnumeration(secondHeaderValues.iterator()))
-        val headers = mapOf(firstEntry, secondEntry)
-        val headersKey = TestEnumeration(headers.keys.iterator())
-        doReturn(headersKey).`when`(request).headerNames
-        `when`(request.getHeaders(anyString())).thenAnswer { a -> headers[a.arguments.first()] }
+        val firstHeaderValues = Pair("key1", arrayOf("header1"))
+        val secondHeaderValues = Pair("key2", arrayOf("header2.1", "header2.2"))
+        val (firstEntry, secondEntry) = mockHeaders(firstHeaderValues, secondHeaderValues)
         val actual = responseBuilder.headersOf(request)
-        assertEquals(firstHeaderValues.toList(), actual[firstEntry.first])
-        assertEquals(secondHeaderValues.toList(), actual[secondEntry.first])
+        assertEquals(firstHeaderValues.second.toList(), actual[firstEntry.first])
+        assertEquals(secondHeaderValues.second.toList(), actual[secondEntry.first])
     }
 
     @Test
@@ -52,8 +44,7 @@ internal class JsonResponseBuilderTest {
 
     @Test
     internal fun testGetParameters() {
-        val expected = mapOf(Pair("key1", "val1"), Pair("key2", "val2"))
-        doReturn(expected).`when`(request).parameterMap
+        val expected = mockParameters()
         val actual = responseBuilder.parametersOf(request)
         assertEquals(expected, actual)
     }
@@ -62,11 +53,7 @@ internal class JsonResponseBuilderTest {
     internal fun testGetMultipart() {
         val fe = "json"
         val se = "form-data"
-        val firstPart = multipart("form-data-json", toInputStream(fe), "json", fe.length.toLong())
-        val secondPart = multipart(null, toInputStream(se), "form-data", se.length.toLong())
-        val parts = listOf(firstPart, secondPart)
-        doReturn(parts).`when`(request).parts
-        doReturn("multipart").`when`(request).contentType
+        mockMultipart(fe, se)
         val actual = responseBuilder.multiPartOf(request)
         val fistProjection = actual.component1()
         val secondProjection = actual.component2()
@@ -111,36 +98,6 @@ internal class JsonResponseBuilderTest {
         val projection = MultipartProjection("form-data-json", "json", fe.length.toLong(), fe)
         assertEquals(listOf(projection), requestProjection.multipart)
     }
-
-    private fun toInputStream(firstExpected: String) = ByteArrayInputStream(firstExpected.toByteArray())
-
-    private fun multipart(type: String?, body: InputStream, name: String, size: Long): Part {
-        val part = mock(Part::class.java)
-        doReturn(body).`when`(part).inputStream
-        doReturn(size).`when`(part).size
-        doReturn(name).`when`(part).name
-        doReturn(type).`when`(part).contentType
-        return part
-    }
-
-    private fun mockBody(expected: String) {
-        val mockedStream = mock(ServletInputStream::class.java)
-        doReturn(mockedStream).`when`(request).inputStream
-        var filled = false
-        `when`(mockedStream.read(any(), anyInt(), anyInt())).thenAnswer { inv ->
-            val bytes = inv.arguments[0] as ByteArray
-            expected.toByteArray().copyInto(bytes)
-            if (filled) {
-                -1
-            } else {
-                filled = true
-                expected.length
-            }
-        }
-    }
 }
 
-class TestEnumeration(private val iterator: Iterator<String>) : Enumeration<String> {
-    override fun hasMoreElements(): Boolean = iterator.hasNext()
-    override fun nextElement(): String = iterator.next()
-}
+
