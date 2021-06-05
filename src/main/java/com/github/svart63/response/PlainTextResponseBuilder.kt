@@ -2,16 +2,17 @@ package com.github.svart63.response
 
 import org.springframework.stereotype.Component
 import java.io.IOException
+import java.lang.Exception
 import java.util.Arrays
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.Part
 
 @Component("plain")
-class PlainTextResponseBuilder : AbstractResponseBuilder(), ResponseBuilder<String> {
+class PlainTextResponseBuilder : AbstractResponseBuilder<String>() {
     override fun buildResponse(request: HttpServletRequest): String {
         val builder = StringBuilder()
-        appendMetadata(builder, request)
+        appendMetadata(request, builder)
         appendHeaders(request, builder)
         appendMultiParts(request, builder)
         appendParameters(request, builder)
@@ -19,7 +20,7 @@ class PlainTextResponseBuilder : AbstractResponseBuilder(), ResponseBuilder<Stri
         return builder.toString()
     }
 
-    internal fun appendMetadata(builder: StringBuilder, request: HttpServletRequest) {
+    internal fun appendMetadata(request: HttpServletRequest, builder: StringBuilder) {
         builder.append("Request: ").append(request.method).append(": ").append(request.requestURI).append('\n')
     }
 
@@ -56,7 +57,7 @@ class PlainTextResponseBuilder : AbstractResponseBuilder(), ResponseBuilder<Stri
 
 
     internal fun appendMultiParts(request: HttpServletRequest, builder: StringBuilder) {
-        val wrapperLine = wrapperLine("multi parts")
+        val wrapperLine = wrapperLine("multipart")
         builder.append(wrapperLine)
         if (request.contentType != null && request.contentType.contains("multipart")) {
             try {
@@ -68,7 +69,7 @@ class PlainTextResponseBuilder : AbstractResponseBuilder(), ResponseBuilder<Stri
                         .append("body: ").append(partBody(part))
                         .append('\n')
                 }
-            } catch (e: ServletException) {
+            } catch (e: Exception) {
                 builder.append("failed getting parts: ").append(e.message).append('\n')
             }
         }

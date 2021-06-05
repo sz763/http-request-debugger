@@ -3,7 +3,7 @@ package com.github.svart63.response
 import java.io.InputStream
 import javax.servlet.http.Part
 
-abstract class AbstractResponseBuilder {
+abstract class AbstractResponseBuilder<T> : ResponseBuilder<T> {
     internal fun partBody(part: Part?): String? {
         return part?.let { p -> readAndTrimTo50(p.inputStream) }
     }

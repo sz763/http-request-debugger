@@ -13,7 +13,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
-internal class JsonResponseBuilderTest : AbstractResponseBuilderTest() {
+internal class JsonResponseBuilderTest : ResponseBuilderTest() {
     private val responseBuilder = JsonResponseBuilder()
 
     @Test
@@ -79,19 +79,6 @@ internal class JsonResponseBuilderTest : AbstractResponseBuilderTest() {
     internal fun testGetMultipartReadThrowsError() {
         mockMultipartThrowsError()
         responseBuilder.multiPartOf(request)
-    }
-
-    @Test
-    internal fun testReadLongBodyFromStream() {
-        val builder = StringBuilder(51)
-        for (index in 0..51) {
-            builder.append((48 + index).toChar())
-        }
-        val body = builder.toString()
-        val actual = responseBuilder.readAndTrimTo50(body.byteInputStream())
-        assertNotNull(actual, "Body must not be null")
-        assertEquals(52, actual.length)
-        assertTrue(actual.endsWith(".."), "body must end with '..', actual: $actual")
     }
 
     @Test

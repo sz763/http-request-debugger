@@ -1,12 +1,10 @@
 package com.github.svart63.response
 
 import org.springframework.stereotype.Component
-import java.io.InputStream
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.Part
 
 @Component
-class JsonResponseBuilder : AbstractResponseBuilder(), ResponseBuilder<RequestProjection> {
+class JsonResponseBuilder : AbstractResponseBuilder<RequestProjection>() {
 
     override fun buildResponse(request: HttpServletRequest): RequestProjection {
         val headers = headersOf(request)
