@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("/test")
+@RequestMapping("/test/**")
 class SimpleController(
     private val messagingTemplate: SimpMessagingTemplate,
     private val responseBuilderFactory: ResponseBuilderFactory
